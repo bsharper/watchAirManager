@@ -1,10 +1,14 @@
 {
   "name": "watchAirManager",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "This unofficial package allows basic interaction with the WatchAir smart antenna.",
   "main": "index.js",
   "author": "Brian Harper (https://github.com/bsharper)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bsharper/watchAirManager"
+  },
   "dependencies": {
     "bluebird": "^3.4.6",
     "bunyan": "^1.8.3",
