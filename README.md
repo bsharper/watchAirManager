@@ -1,7 +1,5 @@
 # WatchAirSession
 
-
-
 This is an unofficial package that allows you to connect to the WatchAir smart antenna [https://www.watchairtv.com/](https://www.watchairtv.com/)
 
 Currently this package can:
@@ -22,11 +20,18 @@ Probably won't add, but a list of lists isn't complete without a third:
  * Full recording and scheduling support
  * Holographic projection of streaming content
 
-This library uses Promises for nearly everythig because there is a lot of sequencing involved (e.g. get session ID, use session ID to request current channel, change to current channel, etc). The WatchAirSession is also an EventEmitter, check `instance.eventNames` to see what events are emitted. Also, several of the functions are memoized. A Promise is returned regardless, it just immediately resolves to the result.
+This library uses Promises for nearly everything because there is a lot of sequencing involved (e.g. get session ID, use session ID to request current channel, change to current channel, etc). The WatchAirSession is also an EventEmitter, check `instance.eventNames` to see what events are emitted. Also, several of the functions are memoized. A Promise is returned regardless, it just immediately resolves to the result.
+
+## Install
+````shell
+npm install --save watchair-manager
+# or
+yarn add watchair-manager
+````
 
 ## Example
 ````javascript
-var watchAirManager = require('watchAirManager');
+var watchAirManager = require('watchair-manager');
 
 // The clientID is not required, but there might be advantages having a persistent clientID.
 // The clientID is simply a V4 UUID in all uppercase.
