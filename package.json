@@ -1,6 +1,6 @@
 {
   "name": "watchAirManager",
-  "version": "0.0.9",
+  "version": "0.1.1",
   "description": "This unofficial package allows basic interaction with the WatchAir smart antenna.",
   "main": "index.js",
   "author": "Brian Harper (https://github.com/bsharper)",
