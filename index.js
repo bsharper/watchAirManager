@@ -3,9 +3,7 @@ var parseString = Promise.promisify(require('xml2js').parseString);
 
 var uuid = require('node-uuid');
 var rp = require('request-promise');
-
 var lodash = require('lodash');
-var bunyan = require('bunyan');
 
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
@@ -51,24 +49,19 @@ var WatchAirSession = class WatchAirSession {
     }
     this.changeChannel = lodash.throttle(this._changeChannel, 1000);
     this.channelChanging = false;
-    this.loggingToFile = false;
 
-    this.log = bunyan.createLogger({name: 'watchairSession',
-      streams: [
-        { level: 'error', stream: process.stdout }
-      ]
-    });
-    this.log.info('info', `watchairSession object created [ ip: ${ip} ]`);
+    this.log = () => {};
+    this.log(`watchairSession object created [ ip: ${ip} ]`);
+
 
     this.eventNames = ["channelChanged", "streamingStatus", "streamingStatus", "channels", "sessionID"];
 
   }
-  enableLogFile(filename, level) {
-    if (this.loggingToFile) return log.info('Already logging to file');
-    this.loggingToFile = true;
-    if (typeof filename === "undefined") filename = "watchairSession.log";
-    if (typeof level === "undefined") level = "info";
-    this.log.addStream({level: level, path: filename});
+  toggleLogOutput(tf) {
+    this.log = (tf ? console.log.bind(console.log) : () => {} );
+  }
+  setLogFunction(l) {
+    this.log = l;
   }
 
   parseResponse(r) {
@@ -79,7 +72,7 @@ var WatchAirSession = class WatchAirSession {
       forever: true
     }
     var opts = lodash.extend(defaults, uopts);
-    this.log.info( `waRequest: ${JSON.stringify(opts)}`);
+    this.log( `waRequest: ${JSON.stringify(opts)}`);
     return new Promise( (resolve, reject) => {
       this.requests++;
       rp(opts).then(data => {
@@ -92,6 +85,7 @@ var WatchAirSession = class WatchAirSession {
           });
       }).then(data => {
         resolve(data);
+        this.log(data);
       }).catch(err => { reject(err) } );
     });
   }
@@ -118,7 +112,7 @@ var WatchAirSession = class WatchAirSession {
         this.waRequest(opts).then(result => {
           resolve(result);
         }).catch(err => {
-          this.log.error(`waCommand error: ${err}`)
+          this.log(`waCommand error: ${err}`)
           delete this.results[name];
           reject(err);
         });
@@ -133,7 +127,7 @@ var WatchAirSession = class WatchAirSession {
     if (this.channelChanging) return Promise.reject('Channel currently changing');
     var name = "changeChannel";
     return new Promise((resolve, reject) => {
-      this.log.info(`changeChannel: [ uid: ${uniqueid}, tvbps: ${tvbps}]`);
+      this.log(`changeChannel: [ uid: ${uniqueid}, tvbps: ${tvbps}]`);
       clearTimeout(this.ccTimeout);
       this.channelChanging = true;
       this.ccTimeout = setTimeout( ()=> {
@@ -153,7 +147,7 @@ var WatchAirSession = class WatchAirSession {
         resolve(url);
         this.emit("channelChanged", this.currentChannel);
       }).catch(err => {
-        this.log.error(`${name} error: ${err}`);
+        this.log(`${name} error: ${err}`);
       })
     });
   }
@@ -177,7 +171,7 @@ var WatchAirSession = class WatchAirSession {
           this.emit("streamingStatus", -1);
         }
       }).catch(err => {
-        this.log.error(`${name} error: ${err}`);
+        this.log(`${name} error: ${err}`);
         delete this.results[name];
         reject(err);
       });
@@ -205,7 +199,7 @@ var WatchAirSession = class WatchAirSession {
         resolve(na);
         this.emit("channels", this.channels);
       }).catch(err => {
-        this.log.error(`${name} error: ${JSON.stringify(err, null, 4)}`);
+        this.log(`${name} error: ${JSON.stringify(err, null, 4)}`);
         delete this.results[name];
         reject(err);
       });
@@ -236,7 +230,7 @@ var WatchAirSession = class WatchAirSession {
         resolve(this.sessionID);
         this.emit("sessionID", this.sessionID);
       }).catch(err => {
-        this.log.error(`${name} error: ${err}`);
+        this.log(`${name} error: ${err}`);
         delete this.results[name];
         reject(err);
       });
