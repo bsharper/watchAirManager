@@ -38,7 +38,8 @@ var WatchAirSession = class WatchAirSession {
     this.ip = ip;
     this.requests = 0;
     this.channels = [];
-    this.results = {}
+    this.deviceInfo = {};
+    this.results = {};
     this.initialized = false;
     this.initializing = false;
     this.tvbpsDefault = 3000000;
@@ -151,6 +152,27 @@ var WatchAirSession = class WatchAirSession {
       })
     });
   }
+  getDeviceInfo(cache) {
+    if (typeof cache === "undefined") cache = true;
+    var name = "getDeviceInfo";
+    if ((!cache) && Object.keys(this.results).indexOf(name) > -1) {
+      this.emit("deviceInfo", this.results[name]);
+      return this.results[name];
+    }
+    this.results[name] = new Promise((resolve, reject) => {
+      this.waCommand("getDeviceInfo").then(data => {
+        this.deviceInfo = data.MML.Body.DeviceInfo
+        resolve(this.deviceInfo);
+        this.emit("deviceInfo", this.deviceInfo);
+      }).catch(err => {
+        this.log(`${name} error: ${err}`);
+        delete this.results[name];
+        reject(err);
+      });
+    });
+    return this.results[name];
+  }
+
   getStreamingStatus(cache) {
     if (typeof cache === "undefined") cache = true;
     var name = "getStreamingStatus";
