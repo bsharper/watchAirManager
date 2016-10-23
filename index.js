@@ -55,7 +55,7 @@ var WatchAirSession = class WatchAirSession {
     this.log(`watchairSession object created [ ip: ${ip} ]`);
 
 
-    this.eventNames = ["channelChanged", "streamingStatus", "streamingStatus", "channels", "sessionID"];
+    this.eventNames = ["channelChanged", "streamingStatus", "statusAll", "deviceInfo", "channels", "sessionID"];
 
   }
   toggleLogOutput(tf) {
@@ -151,6 +151,27 @@ var WatchAirSession = class WatchAirSession {
         this.log(`${name} error: ${err}`);
       })
     });
+  }
+  getStatusAll(cache) {
+    if (typeof cache === "undefined") cache = true;
+    var name = "getStatusAll";
+    var eventName = "statusAll";
+    if ((!cache) && Object.keys(this.results).indexOf(name) > -1) {
+      this.emit(eventName, this.statusAll);
+      return this.results[name];
+    }
+    this.results[name] = new Promise((resolve, reject) => {
+      this.waCommand("getStatusAll").then(data => {
+        this.statusAll = data.MML.Body
+        resolve(this.statusAll);
+        this.emit(eventName, this.statusAll);
+      }).catch(err => {
+        this.log(`${name} error: ${err}`);
+        delete this.results[name];
+        reject(err);
+      });
+    });
+    return this.results[name];
   }
   getDeviceInfo(cache) {
     if (typeof cache === "undefined") cache = true;
@@ -268,7 +289,7 @@ var WatchAirSession = class WatchAirSession {
       this.initializing = true;
       this.getSessionID()
         .then(() => {
-          return this.getChannels();
+          return this.getDeviceInfo();
         })
         .then(() => {
           return this.getStreamingStatus();
