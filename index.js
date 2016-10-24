@@ -2,7 +2,8 @@ var Promise = require('bluebird');
 var parseString = Promise.promisify(require('xml2js').parseString);
 
 var uuid = require('node-uuid');
-var rp = require('request-promise');
+var rp = require('./simple-request-promise').requestPromise;
+
 var lodash = require('lodash');
 
 var EventEmitter = require('events').EventEmitter;
@@ -67,6 +68,12 @@ var WatchAirSession = class WatchAirSession {
 
   parseResponse(r) {
     return new WatchAirResponse(r);
+  }
+  checkMMLResult(r) {
+    var result = r.MML.Hdr.Result;
+    var check = { code: result.Code, message: result.Description, success: true};
+    if (result.Code != "0") check.success = false;
+    return check;
   }
   waRequest(uopts) {
     var defaults = {
@@ -142,6 +149,12 @@ var WatchAirSession = class WatchAirSession {
         "tvbps":tvbps,
         "force":0
       }).then(data => {
+        var check = this.checkMMLResult(data);
+        if (! check.success) {
+          var errtxt = `changeChannel error: [ response code: ${check.code} ] ${check.message}`;
+          this.log(errtxt);
+          return reject(errtxt);
+        }
         var url = data.MML.Body.Media.Url.replace(/\r?\n|\r/, '');
         this.currentChannel.url = url;
         this.channelChanging = false;
